@@ -1,0 +1,8 @@
+{
+    'Variables': 'abcxyzfghmnkijk',
+
+    'FunctionSymbols': [
+        '_ _',
+        '(lambda _. _)'
+    ]
+}
