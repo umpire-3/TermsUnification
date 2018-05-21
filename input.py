@@ -6,18 +6,28 @@ import re
 with open('grammar.txt') as file:
     grammar = eval(file.read())
 
-variables = {'var%d' % i: var for i, var in enumerate(grammar['Variables'])}
+variables = grammar['Variables']
 function_symbols = grammar['FunctionSymbols']
 
-tokens = tuple(variables) + ('Space', 'name', 'newline')
-
-for token, lexeme in variables.items():
-    globals()['t_%s' % token] = lexeme
-
-t_Space = r'\s'
-t_name = r'[a-zA-Z][a-zA-Z0-9]+'
+tokens = (
+    'Variable',
+    'Space',
+    'Symbol',
+    'newline'
+)
 
 literals = set(''.join(function_symbols)) - {' '}
+
+t_Space = r'\s'
+
+
+def t_Symbol(t):
+    r'[a-zA-Z][a-zA-Z0-9]*'
+    if t.value in variables:
+        t.type = 'Variable'
+    else:
+        t.type = 'Symbol'
+    return t
 
 
 def t_newline(t):
@@ -32,29 +42,26 @@ def t_error(t):
 lex.lex()
 
 
-def production(rule):
-    def decorator(fn):
-        fn.__doc__ = rule
-        return fn
-    return decorator
-
-
 def p_terms(p):
-    ''' terms : term
-              | term newline terms '''
+    """ terms : term
+              | term newline terms """
     if len(p) == 2:
         p[0] = (p[1],)
     else:
         p[0] = (p[1],) + p[3]
 
 
-@production('term : ' + '\n| '.join(variables))
 def p_var(p):
+    """term : Variable"""
     p[0] = term.Variable(p[1])
+print(p_var.__doc__)
 
 
 def to_production(symbol):
-    rule = 'term : %s' % ' name '.join(
+    def p_term(p):
+        p[0] = term.FunctionSymbol(symbol, *filter(lambda t: isinstance(t, term.Term), p))
+
+    p_term.__doc__ = 'term : %s' % ' Symbol '.join(
         map(
             lambda s: ' '.join(
                 map(
@@ -63,14 +70,10 @@ def to_production(symbol):
                 )
             ).replace('\'_\'', 'term'),
 
-            re.split(t_name, symbol)
+            re.split(t_Symbol.__doc__, symbol)
         )
     )
-    print(rule)
-
-    @production(rule)
-    def p_term(p):
-        p[0] = term.FunctionSymbol(symbol, *filter(lambda t: isinstance(t, term.Term), p))
+    print(p_term.__doc__)
 
     return p_term
 

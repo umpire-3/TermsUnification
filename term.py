@@ -117,24 +117,3 @@ class Substitution:
 
 def IdentitySub():
     return Substitution()
-
-# if __name__ == '__main__':
-#     a = Variable('a')
-#     b = Variable('b')
-#     c = Variable('c')
-#     fab = FunctionSymbol('f(_, _)', a, b)
-#     plus0 = FunctionSymbol('_ + _', c, fab)
-#     plus1 = FunctionSymbol('_ + _', fab, c)
-#
-#     print(plus0)
-#     print(plus1)
-#     print(len(plus0) == len(plus1))
-#
-#     # sub = Substitution({
-#     #     Variable('a'): Variable('x'),
-#     #     Variable('b'): Variable('y')
-#     # })
-#     #
-#     # sub.compose({Variable('a'): Variable('1')})
-#     #
-#     # print(sub.apply(plus))

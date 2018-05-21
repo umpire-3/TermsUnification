@@ -1,5 +1,5 @@
 {
-    'Variables': 'abcxyzfghmnkijk',
+    'Variables': list('abcxyzfghmnkijk'),
 
     'FunctionSymbols': [
         '_ _',
