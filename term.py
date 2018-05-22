@@ -14,6 +14,9 @@ class Term:
     def __hash__(self):
         return hash(self._symbol)
 
+    def contains(self, variable):
+        pass
+
     def is_variable(self):
         pass
 
