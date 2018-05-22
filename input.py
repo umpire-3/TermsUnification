@@ -9,9 +9,9 @@ with open('grammar.txt') as file:
 
 variables = grammar['Variables']
 function_symbols = {symbol: re.findall(r'[a-zA-Z][a-zA-Z0-9]*', symbol) for symbol in grammar['FunctionSymbols']}
-symbols = []
+symbols = set()
 for names in function_symbols.values():
-    symbols.extend(names)
+    symbols |= set(names)
 
 tokens = tuple(symbols) + (
     'Variable',
@@ -62,11 +62,11 @@ print('Grammar:', p_var.__doc__, sep='\n')
 
 
 def to_production(symbol, tokens):
-    def to_rule(it, symbol):
+    def to_rule(tokens, symbol, level=0):
         try:
-            token = next(it)
-            return (' %s ' % token).join(map(lambda s: to_rule(it, s), symbol.split(token)))
-        except StopIteration:
+            token = tokens[level]
+            return (' %s ' % token).join(map(lambda s: to_rule(tokens, s, level + 1), symbol.split(token)))
+        except IndexError:
             return ' '.join(
                 map(
                     lambda c: '\'%s\'' % c if c != ' ' else 'Space',
@@ -76,7 +76,7 @@ def to_production(symbol, tokens):
 
     def p_term(p):
         p[0] = term.FunctionSymbol(symbol, *filter(lambda t: isinstance(t, term.Term), p))
-    p_term.__doc__ = 'term : %s' % to_rule(iter(tokens), symbol)
+    p_term.__doc__ = 'term : %s' % to_rule(tokens, symbol)
     print(p_term.__doc__)
 
     return p_term
