@@ -1,7 +1,11 @@
 {
-    'Variables': list('abcxyzfghmnkijk'),
+    'Variables': list('abcXYZxyzFGH'),
 
     'FunctionSymbols': [
+        'f(_, _)',
+        'g(_, _)',
+        'h(_)',
+        '_ = _',
         '_ _',
         '(lambda _. _)'
     ]

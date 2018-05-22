@@ -1,3 +1,4 @@
+import string
 import ply.lex as lex
 import ply.yacc as yacc
 import term
@@ -7,16 +8,19 @@ with open('grammar.txt') as file:
     grammar = eval(file.read())
 
 variables = grammar['Variables']
-function_symbols = grammar['FunctionSymbols']
+function_symbols = {symbol: re.findall(r'[a-zA-Z][a-zA-Z0-9]*', symbol) for symbol in grammar['FunctionSymbols']}
+symbols = []
+for names in function_symbols.values():
+    symbols.extend(names)
 
-tokens = (
+tokens = tuple(symbols) + (
     'Variable',
     'Space',
-    'Symbol',
-    'newline'
+    'Newline'
 )
 
-literals = set(''.join(function_symbols)) - {' '}
+literals = set(''.join(function_symbols)) - set(string.ascii_letters) - {' ', '_'}
+print('Lexis:', tokens + tuple(literals), sep='\n')
 
 t_Space = r'\s'
 
@@ -25,12 +29,12 @@ def t_Symbol(t):
     r'[a-zA-Z][a-zA-Z0-9]*'
     if t.value in variables:
         t.type = 'Variable'
-    else:
-        t.type = 'Symbol'
+    elif t.value in symbols:
+        t.type = t.value
     return t
 
 
-def t_newline(t):
+def t_Newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
     return t
@@ -44,7 +48,7 @@ lex.lex()
 
 def p_terms(p):
     """ terms : term
-              | term newline terms """
+              | term Newline terms """
     if len(p) == 2:
         p[0] = (p[1],)
     else:
@@ -54,31 +58,31 @@ def p_terms(p):
 def p_var(p):
     """term : Variable"""
     p[0] = term.Variable(p[1])
-print(p_var.__doc__)
+print('Grammar:', p_var.__doc__, sep='\n')
 
 
-def to_production(symbol):
-    def p_term(p):
-        p[0] = term.FunctionSymbol(symbol, *filter(lambda t: isinstance(t, term.Term), p))
-
-    p_term.__doc__ = 'term : %s' % ' Symbol '.join(
-        map(
-            lambda s: ' '.join(
+def to_production(symbol, tokens):
+    def to_rule(it, symbol):
+        try:
+            token = next(it)
+            return (' %s ' % token).join(map(lambda s: to_rule(it, s), symbol.split(token)))
+        except StopIteration:
+            return ' '.join(
                 map(
                     lambda c: '\'%s\'' % c if c != ' ' else 'Space',
-                    s
+                    symbol
                 )
-            ).replace('\'_\'', 'term'),
+            ).replace('\'_\'', 'term')
 
-            re.split(t_Symbol.__doc__, symbol)
-        )
-    )
+    def p_term(p):
+        p[0] = term.FunctionSymbol(symbol, *filter(lambda t: isinstance(t, term.Term), p))
+    p_term.__doc__ = 'term : %s' % to_rule(iter(tokens), symbol)
     print(p_term.__doc__)
 
     return p_term
 
-for i, symbol in enumerate(function_symbols):
-    globals()['p_term%d' % i] = to_production(symbol)
+for i, (symbol, names) in enumerate(function_symbols.items()):
+    globals()['p_term%d' % i] = to_production(symbol, names)
 
 
 def p_error(p):

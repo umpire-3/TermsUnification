@@ -1,12 +1,11 @@
 
 
 
+f(g(X, a), X)
 
-(lambda x. g x) x
+f(Y, a)
 
+(lambda x. x) x
 
-
-
-f y
-
+F y
 
