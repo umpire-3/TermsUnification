@@ -100,14 +100,13 @@ class Substitution:
         return FunctionSymbol(term._symbol, *map(self, term._sub_terms))
 
     def compose(self, substitution):
-        if isinstance(substitution, Substitution):
-            map = substitution._map
-        elif isinstance(substitution, dict):
-            map = substitution
-        else:
+        if isinstance(substitution, dict):
+            substitution = Substitution(substitution)
+        elif not isinstance(substitution, Substitution):
             raise TypeError('an instance of term.Substitution or dict is required')
 
-        self._map.update(map)
+        self._map = {var: substitution(term) for var, term in self._map.items()}
+        self._map.update(substitution._map)
 
         return self
 

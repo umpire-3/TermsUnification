@@ -8,7 +8,10 @@ if __name__ == '__main__':
         print('     1)', term1)
         print('     2)', term2)
         try:
-            print('Unification is', unify(*data[:2]))
+            unifier = unify(term1, term2)
+            print('\nUnification is \N{GREEK SMALL LETTER SIGMA} =', unifier, '\n')
+            print('     \N{GREEK SMALL LETTER SIGMA}(', term1, ') =', unifier(term1))
+            print('     \N{GREEK SMALL LETTER SIGMA}(', term2, ') =', unifier(term2))
         except UndefinedSub:
             print('Unification is not possible')
     else:
